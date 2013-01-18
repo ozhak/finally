@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+# finally: a decent file browser
+
+# import libraries
+from Tkinter import *
+from glob import glob
+import os, sys, time
+
+# global variables
+config = {'show_hidden':False, 'sort':'alpha', 'line_height':12}
+current = {'sort':config['sort'], 'mp':None, 'dirlist':[], 'dir':'~', 'glob':'*', 'status':None}
+colors = {}
+
+# define functions
+def parseArgs(args):
+ for i in args[1:]:
+  if i[:1] == '-':
+   f = i[1:].split('=')
+   if len(f) == 1:
+    print "invalid argument format: %s (must have '=' to specify value)" % f[0]
+   elif len(f) == 2:
+    print "argument %s set to %s." % (f[0], f[1])
+  else:
+   print "assuming %s is meant as file/directory to open" % i
+   current['dir'] = i
+
+def parseConfig(file):
+ """Parses a config file, returning a hash of the parsed options.  This should probably be called before parseArgs, so command-line arguments would override config file arguments."""
+ file = open(file, 'r')
+ hash = {}
+ for i in file.readlines():
+  i = i.rstrip()
+  if i[:1] == '#':
+   continue
+  if i == '':
+   continue
+  spl = i.split(':', 1)
+  hash[spl[0].lower()] = spl[1]
+ file.close()
+ return hash
+
+def loadDir(directory='.'):
+ if directory == '.':
+  directory = current['dir']
+ current['dirlist'] = os.listdir(directory)
+ return current['dirlist']
+
+def parseCommand(input):
+ si = input.split()
+ if si[0] == 'quit':
+  root.quit()
+ elif si[0] == 'ls':
+  if len(si) == 1 or si[1] == '*':
+   current['glob'] = '*'
+  else:
+   current['glob'] = si[1]
+  current['list'] = mglob(current['glob'])
+  status('current glob is now %s' % current['glob'], current['mp'])
+
+def mglob(glob_a):
+ dironly = False
+ if glob_a[-1] == '/' and len(glob_a) > 1:
+  glob_a = glob_a[:-1]
+  dironly = True
+ lst = glob(current['dir'] + '/' + glob_a)
+ ret = []
+ for i in lst:
+  if dironly:
+   if os.path.isdir(i):
+    ret.append(i.split('/')[-1])
+  else:
+   ret.append(i.split('/')[-1])
+ return ret
+
+# gui functions
+def mlRet(event):
+ input = ml.get("1.0", END).rstrip()
+ parseCommand(input)
+ ml.delete("1.0", END)
+
+def mlKey(event):
+ input = ml.get("1.0", END).rstrip()
+ if len(input) == 0:
+  return
+ si = input.split()
+ if input == '':
+  showDir(mglob(current['glob']), current['mp'])
+ elif si[0] == 'ls' and len(si) > 1:
+  showDir(mglob(si[1]), current['mp'])
+
+def drawDirItem(item, num, widget):
+ f = 'ffffff'
+ ext = item.split('.')[-1].lower()
+ if ext in colors:
+  f = colors[ext]
+ if os.path.isdir(item):
+  f = colors['/']
+ if f[:1] != '#':
+  f = '#' + f
+ return widget.create_text(1, num*config['line_height'], text=item, fill=f, anchor=NW)
+  
+def showDir(listing, widget=current['mp']):
+ widget.delete(ALL)
+ the_items = []
+ n = 0
+ i = -1
+ while i < len(listing)-1:
+  i += 1
+  if not config['show_hidden']:
+   if listing[i][:1] == '.':
+    continue
+  the_items.append(drawDirItem(listing[i], n, widget))
+  n += 1
+ return the_items
+
+def status(msg, widget=current['mp']):
+ if current['status'] != None:
+  widget.delete(current['status'][0])
+ current['status'] = [widget.create_text(1, widget.winfo_height()-1, text=msg, fill='red', anchor=SW), time.time()]
+
+# program
+if __name__ == '__main__':
+ colors = parseConfig('/home/modula/.finally_colors')
+ if current['dir'] == '~':
+  current['dir'] = os.environ['HOME']
+ os.chdir(current['dir'])
+ root = Tk()
+ root.title('finally')
+ ml = Text(root, height=1, undo=100)
+ ml.bind('<KeyRelease>', mlKey)
+ ml.bind('<Key-Return>', mlRet)
+ ml.focus_set()
+ ml.pack(fill=X, side=BOTTOM)
+ mp = Canvas(root, bd=0, bg='#000000')
+ mp.pack(fill=BOTH, expand=1, side=TOP)
+ current['mp'] = mp
+ canv_files = showDir(loadDir(), widget=mp)
+ root.mainloop()
