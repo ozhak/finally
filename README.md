@@ -15,7 +15,7 @@ some of the goals of this project:
 * use mcclim for the GUI (i don't know much about mcclim so this is my way to learn it, as well as common lisp)
 * easily scriptable/changable by the user
 * logical & consistent
-* use settings from other things (i.e. `.dircolors`, maybe copy a few settings from `.zshrc` or something; but always allow settings bbto be overridden by finally's config file)
+* use settings from other things (i.e. `.dircolors`, maybe copy a few settings from `.zshrc` or something; but always allow settings to be overridden by finally's config file)
 * play well with tiling window managers (and everything else, ideally)
 * fast & responsive
 * waste as little screen space as possible.
