@@ -3,7 +3,7 @@ finally
 
 finally: a decent file manager
 
-in my spare time i'm trying to make a common lisp file manager.
+in my spare time i'm trying to make a file manager in common lisp.
 
 some of the goals of this project:
 
@@ -18,7 +18,7 @@ some of the goals of this project:
 * use settings from other things (i.e. `.dircolors`, maybe copy a few settings from `.zshrc` or something; but always allow settings to be overridden by finally's config file)
 * play well with tiling window managers (and everything else, ideally)
 * fast & responsive
-* waste as little screen space as possible.
+* waste as little screen space as possible
 * sensible defaults
 * display a lot of (useful) information
 
